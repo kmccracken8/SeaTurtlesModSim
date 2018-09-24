@@ -1,6 +1,13 @@
 from modsim import *
+from pandas import *
 
-array1 = linspace(1,3,15)
-array2 = linrange(1,3,15)
-print(array1)
-print(array2)
+x_array = linspace(1,10,10)
+y_array = linspace(1,10,10)
+
+data = TimeSeries()
+
+for t in linspace(1,10,10):
+    data[t] = t
+
+plot(data)
+savefig('figs/testplot.pdf')
