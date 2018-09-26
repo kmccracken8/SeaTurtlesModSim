@@ -1,5 +1,7 @@
 from modsim import *
 from pandas import *
 
-for i in range(1,4):
-    print('hi')
+for num in range(1,6):
+    plotData = 'ri' + str(num)
+    print(plotData)
+    
