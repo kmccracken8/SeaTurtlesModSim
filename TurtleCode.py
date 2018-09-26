@@ -1,8 +1,8 @@
 from modsim import *
 from pandas import *
 
-system = System(nestR = .01, rr1 = .01, rr2 = .4, rr3 = .3, rr4 = .04, rr5 = .02, rr6 = .01)
-state = State(population = 2000, r1T = TimeSeries(), r2T = TimeSeries(), r3T = TimeSeries(), r4T = TimeSeries(), r5T = TimeSeries(), r6T = TimeSeries(),)
+system = System(nestR = .002, rr1 = .01, rr2 = .59, rr3 = .28, rr4 = .16, rr5 = .047, rr6 = .015)
+state = State(population = 2000, r1T = TimeSeries(), r2T = TimeSeries(), r3T = TimeSeries(), r4T = TimeSeries(), r5T = TimeSeries(), r6T = TimeSeries(), newN = TimeSeries())
 
 turtleDataframe = pandas.read_csv('data/Garner_LeatherbackRemigrationIntervalsData_StCroix.csv',index_col = 0, header = 0)
 nestingTurtleData = turtleDataframe['Turtles']
@@ -11,10 +11,16 @@ ri2 = turtleDataframe['RI2']
 ri3 = turtleDataframe['RI3']
 ri4 = turtleDataframe['RI4']
 ri5 = turtleDataframe['RI5']
-ri6up = turtleDataframe['RI6up']
+ri6 = turtleDataframe['RI6up']
+new = turtleDataframe['Unknown']
 
 def stepmk1(system,state,t,fiveYearPop, sixAndBefore, sabAge, r1T, r2T, r3T, r4T, r5T, r6T):
-    newNesters = system.nestR * state.population
+    if t < 1985:
+        newNesters = 22
+    else:
+        newNesters = system.nestR * state.population
+    state.newN[t] = newNesters
+
     R1 = fiveYearPop[1] * system.rr1
     r1T[t] = R1
     R2 = fiveYearPop[2] * system.rr2
@@ -41,7 +47,7 @@ def runSimulation(system,state,step):
     for n1 in range(1,6):
         fiveYearPop[n1] = 0
 
-    for t in range(1983,2011):
+    for t in range(1983,2020):
         if t <= 1988:
             sixAndBefore = 0
             sabAge = 1
@@ -70,10 +76,23 @@ def plotResults(turtleData, timeseries, title, colorin):
              ylabel='Nesting Population',
              title=title)
 
-plotResults(nestingTurtleData, runSimulation(system,state,stepmk1), 'Model Mk1','purple')
-savefig('figs/nestingTurtleData-ModelMk1-16.pdf')
 
-plotResults(ri2, state.r2T,'r2graph','grey')
-savefig('figs/Returnyearcomparisons/2-returnRateTurtleData-ModelMk1-16.pdf')
-plotResults(ri3, state.r3T,'r3graph','grey')
-savefig('figs/Returnyearcomparisons/3-returnRateTurtleData-ModelMk1-16.pdf')
+
+
+pId = 0
+
+plt.figure(11)
+plotResults(nestingTurtleData, runSimulation(system,state,stepmk1), 'Model Mk1','purple')
+savefig('figs/Returnyearcomparisons/nestingTurtleData-ModelMk1-' + str(pId) + '.png')
+
+for num in range(1,7):
+    plotData = 'ri' + str(num)
+    stateData = 'state.r' + str(num) + 'T'
+    plotTitle = 'r' + str(num) + 'graph'
+    plt.figure(num)
+    plotResults(eval(plotData),eval(stateData),plotTitle,'blue')
+    savefig('figs/Returnyearcomparisons/' + str(pId) + '-returnRateTurtleData-ModelMk1-' + str(num) + '.png')
+
+plt.figure(10)
+plotResults(new,state.newN,'New Nesters','blue')
+savefig('figs/Returnyearcomparisons/' + str(pId) + '-newNestersTurtleData-ModelMk1-10.png')
